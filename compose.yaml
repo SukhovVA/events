@@ -1,0 +1,57 @@
+
+services:
+  nginx:
+    restart: unless-stopped
+    container_name: ${SERVICE_NAME}_nginx
+    build:
+      context: ./.docker/context
+      dockerfile: images/nginx/Dockerfile
+      args:
+        PHP_FPM_SERVICE_NAME: php-fpm
+    ports:
+      - ${NGINX_PORT}:80
+    volumes:
+      - ./:/var/www:delegated
+      - ./logs/nginx:/var/log/nginx:delegated
+    depends_on:
+      - php-fpm
+    networks:
+      - events-network
+
+  php-fpm:
+    restart: unless-stopped
+    container_name: ${SERVICE_NAME}_php-fpm
+    build:
+      context: ./.docker/context
+      dockerfile: images/php-fpm/dev/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV}
+      PHP_IDE_CONFIG: serverName=php-fpm
+    ports:
+      - "9002:9000"
+    volumes:
+      - ./:/var/www:delegated
+    working_dir: /var/www/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - database
+    networks:
+      - events-network
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    ports:
+      - ${POSTGRES_DB_PORT}:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_DB_USER}
+    volumes:
+      - ./.docker/data/postgres_data:/var/lib/postgresql/data:rw
+    networks:
+      - events-network
+
+networks:
+  events-network:
+    name: events-network
