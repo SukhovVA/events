@@ -47,6 +47,10 @@ class Event
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private ?bool $active = true;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: "SET NULL")]
+    private ?MediaLink $cover = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -144,6 +148,18 @@ class Event
     public function setActive(bool $active): static
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function getCover(): ?MediaLink
+    {
+        return $this->cover;
+    }
+
+    public function setCover(?MediaLink $cover): static
+    {
+        $this->cover = $cover;
 
         return $this;
     }
