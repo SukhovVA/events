@@ -19,8 +19,6 @@ final class EventFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      *
-     * @todo add your default values here
-     * @throws \DateMalformedStringException
      */
     protected function defaults(): array|callable
     {
@@ -36,6 +34,7 @@ final class EventFactory extends PersistentProxyObjectFactory
             'remoteLink'    => self::faker()->url(),
             'cover'         => MediaLinkFactory::createOne(),
             'createdAt'     => DateTimeImmutable::createFromMutable($startsAt->modify('-2 months')),
+            'deletedAt'     => self::faker()->boolean(10) ? DateTimeImmutable::createFromMutable(self::faker()->dateTimeBetween('-1 week')) : null,
         ];
     }
 

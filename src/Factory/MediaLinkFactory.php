@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\MediaLink;
+use App\Enum\MediaLinkType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -18,15 +19,14 @@ final class MediaLinkFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      *
-     * @todo add your default values here
      */
     protected function defaults(): array|callable
     {
         return [
-            'hash'         => self::faker()->sha256(),
             'name'         => self::faker()->uuid() . '.jpg',
             'originalName' => 'cover.jpg',
-            'type'         => 1,
+            'hash'         => self::faker()->sha256(),
+            'type'         => MediaLinkType::COVER->value,
         ];
     }
 
