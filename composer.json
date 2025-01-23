@@ -11,6 +11,8 @@
         "doctrine/doctrine-bundle": "^2.13",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.3",
+        "league/flysystem-aws-s3-v3": "^3.29",
+        "league/flysystem-bundle": "^3.3",
         "stof/doctrine-extensions-bundle": "^1.13",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",

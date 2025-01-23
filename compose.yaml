@@ -1,8 +1,8 @@
 
 services:
   nginx:
-    restart: unless-stopped
     container_name: ${SERVICE_NAME}_nginx
+    restart: unless-stopped
     build:
       context: ./.docker/context
       dockerfile: images/nginx/Dockerfile
@@ -16,11 +16,11 @@ services:
     depends_on:
       - php-fpm
     networks:
-      - events-network
+      - app-network
 
   php-fpm:
-    restart: unless-stopped
     container_name: ${SERVICE_NAME}_php-fpm
+    restart: unless-stopped
     build:
       context: ./.docker/context
       dockerfile: images/php-fpm/dev/Dockerfile
@@ -36,11 +36,13 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - database
+      - minio
     networks:
-      - events-network
+      - app-network
 
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
+    container_name: ${SERVICE_NAME}_postgres
     ports:
       - ${POSTGRES_DB_PORT}:5432
     environment:
@@ -50,8 +52,55 @@ services:
     volumes:
       - ./.docker/data/postgres_data:/var/lib/postgresql/data:rw
     networks:
-      - events-network
+      - app-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: ${SERVICE_NAME}_minio
+    restart: unless-stopped
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./.docker/data/minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - app-network
+
+  create-buckets:
+    image: minio/mc
+    container_name: ${SERVICE_NAME}_minio-create-buckets
+    depends_on:
+      - minio
+    volumes:
+        - './.docker/context/conf/minio:/etc/minio'
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_BUCKET: ${AWS_BUCKET}
+      AWS_ENDPOINT: ${AWS_ENDPOINT}
+    entrypoint: >
+      /bin/sh -c "
+      mc config host add myminio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY};
+      mc mb myminio/${AWS_BUCKET};
+      mc policy set public myminio/${AWS_BUCKET};
+      mc policy download myminio/${AWS_BUCKET};
+      exit 0;
+      "
+    networks:
+      - app-network
+
+volumes:
+  minio-storage:
 
 networks:
-  events-network:
-    name: events-network
+  app-network:
+    name: app-network
