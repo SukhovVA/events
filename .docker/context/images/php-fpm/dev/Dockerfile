@@ -10,6 +10,8 @@ RUN apt-get update \
     && pecl install memcached \
     && echo extension=memcached.so >> /usr/local/etc/php/conf.d/memcached.ini \
     && pecl install apcu \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

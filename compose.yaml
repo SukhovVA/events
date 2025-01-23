@@ -37,11 +37,12 @@ services:
     depends_on:
       - database
       - minio
+      - redis
     networks:
       - app-network
 
   database:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    image: postgres:16-alpine
     container_name: ${SERVICE_NAME}_postgres
     ports:
       - ${POSTGRES_DB_PORT}:5432
@@ -80,8 +81,6 @@ services:
     container_name: ${SERVICE_NAME}_minio-create-buckets
     depends_on:
       - minio
-    volumes:
-        - './.docker/context/conf/minio:/etc/minio'
     environment:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -95,6 +94,14 @@ services:
       mc policy download myminio/${AWS_BUCKET};
       exit 0;
       "
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${SERVICE_NAME}_redis
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 
