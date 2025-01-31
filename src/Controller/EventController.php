@@ -8,11 +8,30 @@ use App\Service\EventService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use Symfony\Component\HttpKernel\Exception\NotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/events')]
 class EventController extends AbstractController
 {
+    /**
+     * Получает список мероприятий с пагинацией.
+     *
+     * Для текущего аутентифицированного пользователя выдается дополненный пул данных.
+     * Поддерживает пагинацию через параметр `page`, который указывает текущую страницу.
+     *
+     * @param int $page Номер страницы для пагинации (по умолчанию 1).
+     *
+     * @return JsonResponse Возвращает JSON-ответ, содержащий:
+     *   - success: boolean, указывает на успешность выполнения запроса
+     *   - data: объект, содержащий список мероприятий
+     *   - meta: метаданные
+     *
+     * @throws AccessDeniedException Ошибка аутентификации.
+     */
     #[Route(methods: 'GET')]
     public function index(
         EventService             $eventService,
@@ -28,6 +47,19 @@ class EventController extends AbstractController
         ]);
     }
 
+    /**
+     * Получает детали конкретного мероприятия по его slug.
+     *
+     * Этот метод возвращает детали мероприятия, если оно активно и существует.
+     *
+     * @param string $slug Уникальный идентификатор события (slug).
+     *
+     * @return JsonResponse Возвращает JSON-ответ, содержащий:
+     *   - success: boolean, указывает на успешность выполнения запроса
+     *   - data: объект, содержащий детали мероприятия
+     *
+     * @throws NotFoundHttpException Если мероприятие не найдено.
+     */
     #[Route(path: '/{slug}', methods: 'GET')]
     public function show(
         string       $slug,
@@ -43,6 +75,24 @@ class EventController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => new EventResponse($event)
+        ]);
+    }
+
+    #[Route(path: '/{slug}/register', methods: 'POST')]
+    #[IsGranted('IS_AUTHENTICATED')]
+    public function register(
+        string       $slug,
+        EventService $eventService,
+    ): JsonResponse
+    {
+        $event = $eventService->getActiveEvent($slug);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Event not found');
+        }
+
+        return $this->json([
+            'success' => true
         ]);
     }
 }

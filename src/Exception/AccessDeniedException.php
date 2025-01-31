@@ -8,8 +8,9 @@ class AccessDeniedException extends SymfonyAccessDeniedException
 {
     protected $message = 'Нет доступа. Пожалуйста, обратитесь к менеджеру';
 
-    public function __construct()
+    public function __construct($message)
     {
+        $this->message = $message;
         parent::__construct($this->message);
     }
 }
