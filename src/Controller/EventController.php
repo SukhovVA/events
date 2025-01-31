@@ -2,18 +2,24 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Response\EventIndexResponse;
 use App\Response\EventResponse;
 use App\Service\EventService;
+use App\Service\MailService;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
-use Symfony\Component\HttpKernel\Exception\NotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * @method User getUser()
+ */
 #[Route('/events')]
 class EventController extends AbstractController
 {
@@ -31,6 +37,7 @@ class EventController extends AbstractController
      *   - meta: метаданные
      *
      * @throws AccessDeniedException Ошибка аутентификации.
+     * @throws InvalidArgumentException
      */
     #[Route(methods: 'GET')]
     public function index(
@@ -78,18 +85,26 @@ class EventController extends AbstractController
         ]);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     #[Route(path: '/{slug}/register', methods: 'POST')]
     #[IsGranted('IS_AUTHENTICATED')]
     public function register(
         string       $slug,
         EventService $eventService,
+        MailService  $mailService,
     ): JsonResponse
     {
         $event = $eventService->getActiveEvent($slug);
+        $user = $this->getUser();
 
         if (!$event) {
             throw $this->createNotFoundException('Event not found');
         }
+
+        $eventService->register($event, $user);
+        $mailService->sendRegistrationEmail($user->getEmail());
 
         return $this->json([
             'success' => true

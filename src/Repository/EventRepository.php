@@ -18,10 +18,16 @@ class EventRepository extends ServiceEntityRepository
         parent::__construct($registry, Event::class);
     }
 
-    public function findLatest(?UserInterface $user, int $page)
+    public function findLatest(?UserInterface $user, int $page): array
     {
         $query = $this->createQueryBuilder('e')
+            ->select([
+                'partial e.{id, slug, name, startsAt, endsAt, academicHours}',
+                'partial m.{id, name}'
+            ])
+            ->leftJoin('e.cover', 'm')
             ->where('e.active = true')
+            ->orderBy('e.startsAt', 'DESC')
             ->getQuery();
 
         return (new Paginator($query))->paginate($page);

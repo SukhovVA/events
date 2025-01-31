@@ -18,6 +18,7 @@ readonly class EventIndexResponse implements JsonSerializable
                 'name'     => $event->getName(),
                 'starts_at' => $event->getStartsAt(),
                 'ends_at'   => $event->getEndsAt(),
+                'cover'     => $event->getCover()->getName(),
             ];
         }, $this->events);
     }

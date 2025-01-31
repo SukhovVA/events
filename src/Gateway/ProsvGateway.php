@@ -21,23 +21,21 @@ class ProsvGateway
         string          $baseUrl,
     )
     {
-        $this->client = $client->withOptions([
-            'base_uri' => "$baseUrl/api/external/v1/",
-        ]);
+        $this->client = $client->withOptions(['base_uri' => "$baseUrl/api/external/v1/"]);
     }
 
-    public function send($data, $url): array
+    /**
+     * @param array  $data
+     * @param string $url
+     *
+     * @return array
+     */
+    public function send(array $data, string $url): array
     {
         $signature = $this->generateSignature($data);
 
         try {
-            $response = $this->client->request(
-                'POST',
-                "$url/$this->clientId/$signature",
-                [
-                    'json' => $data
-                ]
-            );
+            $response = $this->client->request('POST', "$url/$this->clientId/$signature", ['json' => $data]);
 
             $code = $response->getStatusCode();
             $result = $response->toArray(false);
@@ -60,10 +58,10 @@ class ProsvGateway
     /**
      * Генерация подписи
      *
-     * @param $data - тело запроса
+     * @param array $data Тело запроса
      * @return string
      */
-    private function generateSignature($data): string
+    private function generateSignature(array $data): string
     {
         return sha1(json_encode($data) . $this->clientSalt);
     }

@@ -25,7 +25,7 @@ class Visit
     #[ORM\JoinColumn(nullable: false)]
     private ?User $visitor = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private ?bool $visited = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
