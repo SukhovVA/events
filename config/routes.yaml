@@ -1,7 +1,7 @@
 controllers:
   resource: ../src/Controller/
   type: attribute
-  prefix: '/api'
+  prefix: '/api/v1'
 
 #v1_controllers:
 #  resource: ../src/Controller/v1

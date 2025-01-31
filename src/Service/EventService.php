@@ -12,6 +12,8 @@ readonly class EventService
 
     public function getEvents(?UserInterface $user, int $page): array
     {
+        //TODO: сделать более узкий селект
+        //TODO: обработать передачу прользователя
         return $this->eventRepository->findLatest($user, $page);
     }
 

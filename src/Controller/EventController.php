@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Response\EventIndexResponse;
+use App\Response\EventResponse;
 use App\Service\EventService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,7 +42,7 @@ class EventController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data'    => $event
+            'data' => new EventResponse($event)
         ]);
     }
 }
