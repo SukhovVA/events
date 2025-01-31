@@ -4,11 +4,13 @@ namespace App\Entity;
 
 use App\Repository\EventRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
-use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: true)]
@@ -50,6 +52,17 @@ class Event
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(onDelete: "SET NULL")]
     private ?MediaLink $cover = null;
+
+    /**
+     * @var Collection<int, Visit>
+     */
+    #[ORM\OneToMany(targetEntity: Visit::class, mappedBy: 'event', orphanRemoval: true)]
+    private Collection $visits;
+
+    public function __construct()
+    {
+        $this->visits = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -160,6 +173,36 @@ class Event
     public function setCover(?MediaLink $cover): static
     {
         $this->cover = $cover;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Visit>
+     */
+    public function getVisits(): Collection
+    {
+        return $this->visits;
+    }
+
+    public function addVisit(Visit $visit): static
+    {
+        if (!$this->visits->contains($visit)) {
+            $this->visits->add($visit);
+            $visit->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVisit(Visit $visit): static
+    {
+        if ($this->visits->removeElement($visit)) {
+            // set the owning side to null (unless already changed)
+            if ($visit->getEvent() === $this) {
+                $visit->setEvent(null);
+            }
+        }
 
         return $this;
     }

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
@@ -38,6 +40,17 @@ class User implements UserInterface
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
+
+    /**
+     * @var Collection<int, Visit>
+     */
+    #[ORM\OneToMany(targetEntity: Visit::class, mappedBy: 'visitor', orphanRemoval: true)]
+    private Collection $visits;
+
+    public function __construct()
+    {
+        $this->visits = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -135,5 +148,35 @@ class User implements UserInterface
 
     public function eraseCredentials(): void
     {
+    }
+
+    /**
+     * @return Collection<int, Visit>
+     */
+    public function getVisits(): Collection
+    {
+        return $this->visits;
+    }
+
+    public function addVisit(Visit $visit): static
+    {
+        if (!$this->visits->contains($visit)) {
+            $this->visits->add($visit);
+            $visit->setVisitor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVisit(Visit $visit): static
+    {
+        if ($this->visits->removeElement($visit)) {
+            // set the owning side to null (unless already changed)
+            if ($visit->getVisitor() === $this) {
+                $visit->setVisitor(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -4,11 +4,11 @@ namespace App\Service;
 
 use App\DTO\CreateUserDTO;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserRepository;
 
 readonly class UserCreator
 {
-    public function __construct(private EntityManagerInterface $entityManager) {}
+    public function __construct(private UserRepository $userRepository) {}
 
     public function createUser(CreateUserDTO $userData): User
     {
@@ -20,8 +20,7 @@ readonly class UserCreator
         $user->setEmail($userData->email);
         $user->setRoles(['ROLE_USER']);
 
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->userRepository->save($user, true);
 
         return $user;
     }
