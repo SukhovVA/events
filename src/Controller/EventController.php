@@ -3,16 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Exception\VisitExistException;
 use App\Response\EventIndexResponse;
 use App\Response\EventResponse;
 use App\Service\EventService;
-use App\Service\MailService;
+use App\Service\Visit\VisitService;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -86,14 +86,14 @@ class EventController extends AbstractController
     }
 
     /**
-     * @throws TransportExceptionInterface
+     * @throws VisitExistException
      */
     #[Route(path: '/{slug}/register', methods: 'POST')]
     #[IsGranted('IS_AUTHENTICATED')]
     public function register(
         string       $slug,
         EventService $eventService,
-        MailService  $mailService,
+        VisitService $visitService,
     ): JsonResponse
     {
         $event = $eventService->getActiveEvent($slug);
@@ -103,8 +103,7 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Event not found');
         }
 
-        $eventService->register($event, $user);
-        $mailService->sendRegistrationEmail($user->getEmail());
+        $visitService->register($user, $event);
 
         return $this->json([
             'success' => true

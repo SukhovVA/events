@@ -5,9 +5,11 @@ namespace App\Entity;
 use App\Repository\VisitRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\UniqueConstraint;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: VisitRepository::class)]
+#[UniqueConstraint(columns: ["event_id", 'visitor_id'])]
 class Visit
 {
     use TimestampableEntity;

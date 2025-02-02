@@ -20,6 +20,10 @@ services:
       arguments:
         $accessSecret: '%env(ACCESS_SECRET)%'
 
+    App\Service\MailService:
+      arguments:
+        $fromEmail: '%env(FROM_EMAIL)%'
+
     App\Gateway\ProsvGateway:
       arguments:
         $baseUrl: '%env(ID_PROSV_URL)%'

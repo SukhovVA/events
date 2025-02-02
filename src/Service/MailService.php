@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -11,7 +10,7 @@ readonly class MailService
 {
     public function __construct(
         private MailerInterface       $mailer,
-        private ParameterBagInterface $params,
+        private string $fromEmail,
     ) {}
 
     /**
@@ -31,6 +30,6 @@ readonly class MailService
 
     private function getEmailInstance(): Email
     {
-        return (new Email())->from($this->params->get('from_email'));
+        return (new Email())->from($this->fromEmail);
     }
 }
