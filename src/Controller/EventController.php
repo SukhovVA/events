@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\DTO\RateRequestDTO;
 use App\Entity\User;
 use App\Exception\VisitExistException;
 use App\Response\EventIndexResponse;
@@ -12,6 +13,7 @@ use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -81,11 +83,18 @@ class EventController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => new EventResponse($event)
+            'data'    => new EventResponse($event)
         ]);
     }
 
     /**
+     * Регистрация пользователя на мероприятие.
+     *
+     * @param string $slug Уникальный идентификатор события (slug).
+     *
+     * @return JsonResponse Возвращает JSON-ответ, содержащий:
+     * - success: boolean, указывает на успешность выполнения запроса
+     *
      * @throws VisitExistException
      */
     #[Route(path: '/{slug}/register', methods: 'POST')]
@@ -97,13 +106,44 @@ class EventController extends AbstractController
     ): JsonResponse
     {
         $event = $eventService->getActiveEvent($slug);
-        $user = $this->getUser();
 
         if (!$event) {
             throw $this->createNotFoundException('Event not found');
         }
 
-        $visitService->register($user, $event);
+        $visitService->register($this->getUser(), $event);
+
+        return $this->json([
+            'success' => true
+        ]);
+    }
+
+    /**
+     * Оценка посещенного мероприятия.
+     *
+     * @param string $slug Уникальный идентификатор события (slug).
+     *
+     * @return JsonResponse Возвращает JSON-ответ, содержащий:
+     * - success: boolean, указывает на успешность выполнения запроса
+     *
+     * @throws VisitExistException
+     */
+    #[Route(path: '/{slug}/rate', methods: 'POST')]
+    #[IsGranted('IS_AUTHENTICATED')]
+    public function rate(
+        string                              $slug,
+        #[MapRequestPayload] RateRequestDTO $request,
+        EventService                        $eventService,
+        VisitService                        $visitService,
+    ): JsonResponse
+    {
+        $event = $eventService->getActiveEvent($slug);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Event not found');
+        }
+
+        $visitService->rate($this->getUser(), $event, $request->rating);
 
         return $this->json([
             'success' => true

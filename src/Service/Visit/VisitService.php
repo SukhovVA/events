@@ -10,14 +10,17 @@ use App\Exception\VisitExistException;
 use App\Repository\VisitRepository;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-class VisitService
+readonly class VisitService
 {
     public function __construct(
-        private readonly VisitRepository          $visitRepository,
-        private readonly VisitFactoryInterface    $factory,
-        private readonly EventDispatcherInterface $eventDispatcher
+        private VisitRepository          $visitRepository,
+        private VisitFactoryInterface    $factory,
+        private EventDispatcherInterface $eventDispatcher
     ) {}
 
+    /**
+     * @throws VisitExistException
+     */
     public function register(User $user, Event $event, array $data = []): Visit
     {
         $existingVisit = $this->visitRepository->findExistingVisit($user, $event);
@@ -32,5 +35,23 @@ class VisitService
         $this->eventDispatcher->dispatch(new RegistrationEvent($user, $event));
 
         return $visit;
+    }
+
+    /**
+     * @throws VisitExistException
+     */
+    public function rate(User $user, Event $event, int $rating): Visit
+    {
+        $existingVisit = $this->visitRepository->findExistingVisit($user, $event);
+
+        if (!$existingVisit || !$existingVisit->isVisited()) {
+            throw new VisitExistException('Visit not found');
+        }
+
+        $existingVisit->setRating($rating);
+
+        $this->visitRepository->save($existingVisit, true);
+
+        return $existingVisit;
     }
 }
