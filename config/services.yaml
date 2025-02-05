@@ -1,5 +1,4 @@
 parameters:
-  from_email: '%env(string:FROM_EMAIL)%'
 
 services:
     _defaults:

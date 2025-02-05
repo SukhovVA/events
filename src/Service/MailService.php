@@ -9,8 +9,8 @@ use Symfony\Component\Mime\Email;
 readonly class MailService
 {
     public function __construct(
-        private MailerInterface       $mailer,
-        private string $fromEmail,
+        private MailerInterface $mailer,
+        private string          $fromEmail,
     ) {}
 
     /**
