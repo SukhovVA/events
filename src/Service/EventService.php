@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Event;
 use App\Repository\EventRepository;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -29,8 +30,18 @@ readonly class EventService
         });
     }
 
-    public function getActiveEvent(string $slug): ?Event
+    /**
+     * @param string $slug
+     * @return Event|null
+     */
+    public function getActiveEventOrFail(string $slug): ?Event
     {
-        return $this->eventRepository->findOneBy(['slug' => $slug, 'active' => true]);
+        $event = $this->eventRepository->findOneBy(['slug' => $slug, 'active' => true]);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found');
+        }
+
+        return $event;
     }
 }

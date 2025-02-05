@@ -3,14 +3,12 @@
 namespace App\Controller;
 
 use App\DTO\RateRequestDTO;
-use App\Entity\User;
 use App\Exception\VisitExistException;
 use App\Response\EventIndexResponse;
 use App\Response\EventResponse;
 use App\Service\EventService;
 use App\Service\Visit\VisitService;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -19,11 +17,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * @method User getUser()
- */
 #[Route('/events')]
-class EventController extends AbstractController
+class EventController extends BaseController
 {
     /**
      * Получает список мероприятий с пагинацией.
@@ -49,8 +44,7 @@ class EventController extends AbstractController
     {
         $data = $eventService->getEvents($this->getUser(), $page);
 
-        return $this->json([
-            'success' => true,
+        return $this->success([
             'data'    => new EventIndexResponse($data['data']),
             'meta'    => $data['meta']
         ]);
@@ -75,15 +69,10 @@ class EventController extends AbstractController
         EventService $eventService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEvent($slug);
+        $event = $eventService->getActiveEventOrFail($slug);
 
-        if (!$event) {
-            throw $this->createNotFoundException('Event not found');
-        }
-
-        return $this->json([
-            'success' => true,
-            'data'    => new EventResponse($event)
+        return $this->success([
+            'data' => new EventResponse($event)
         ]);
     }
 
@@ -105,17 +94,11 @@ class EventController extends AbstractController
         VisitService $visitService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEvent($slug);
-
-        if (!$event) {
-            throw $this->createNotFoundException('Event not found');
-        }
+        $event = $eventService->getActiveEventOrFail($slug);
 
         $visitService->register($this->getUser(), $event);
 
-        return $this->json([
-            'success' => true
-        ]);
+        return $this->success();
     }
 
     /**
@@ -137,16 +120,10 @@ class EventController extends AbstractController
         VisitService                        $visitService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEvent($slug);
-
-        if (!$event) {
-            throw $this->createNotFoundException('Event not found');
-        }
+        $event = $eventService->getActiveEventOrFail($slug);
 
         $visitService->rate($this->getUser(), $event, $request->rating);
 
-        return $this->json([
-            'success' => true
-        ]);
+        return $this->success();
     }
 }
