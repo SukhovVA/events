@@ -7,6 +7,7 @@ use App\Entity\Property\Grade;
 use App\Entity\Property\StudyLevel;
 use App\Entity\Property\Subject;
 use App\Entity\Property\Umk;
+use App\Enum\PropertyType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,10 +16,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
 #[ORM\DiscriminatorMap([
-    'grade'        => Grade::class,
-    'subject'      => Subject::class,
-    'umk'          => Umk::class,
-    'subjectLevel' => StudyLevel::class,
+    PropertyType::Grade->value        => Grade::class,
+    PropertyType::Subject->value      => Subject::class,
+    PropertyType::Umk->value          => Umk::class,
+    PropertyType::StudyLevel->value => StudyLevel::class
 ])]
 abstract class Property
 {

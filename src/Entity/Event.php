@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Property\Subject;
+use App\Entity\Property\Umk;
+use App\Enum\PropertyType;
 use App\Repository\EventRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -59,9 +62,16 @@ class Event
     #[ORM\OneToMany(targetEntity: Visit::class, mappedBy: 'event', orphanRemoval: true)]
     private Collection $visits;
 
+    /**
+     * @var Collection<int, Property>
+     */
+    #[ORM\ManyToMany(targetEntity: Property::class)]
+    private Collection $properties;
+
     public function __construct()
     {
         $this->visits = new ArrayCollection();
+        $this->properties = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -205,5 +215,37 @@ class Event
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Property>
+     */
+    public function getProperties(): Collection
+    {
+        return $this->properties;
+    }
+
+    public function addProperty(Property $property): static
+    {
+        if (!$this->properties->contains($property)) {
+            $this->properties->add($property);
+        }
+
+        return $this;
+    }
+
+    public function removeProperty(Property $property): static
+    {
+        $this->properties->removeElement($property);
+
+        return $this;
+    }
+
+    public function getProp(PropertyType $type): Collection
+    {
+        return $this->properties->filter(function (Property $property) use ($type) {
+            $class = $type->getClassName();
+            return $property instanceof $class;
+        });
     }
 }
