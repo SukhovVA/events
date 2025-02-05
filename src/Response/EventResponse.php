@@ -12,8 +12,8 @@ readonly class EventResponse implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'slug'           => $this->event->getSlug(),
             'name'           => $this->event->getName(),
+            'slug'           => $this->event->getSlug(),
             'cover'          => $this->event->getCover()->getName(),
             'description'    => $this->event->getDescription(),
             'academic_hours' => $this->event->getAcademicHours(),

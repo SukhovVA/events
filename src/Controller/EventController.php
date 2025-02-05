@@ -63,13 +63,13 @@ class EventController extends BaseController
      *
      * @throws NotFoundHttpException Если мероприятие не найдено.
      */
-    #[Route(path: '/{slug}', methods: 'GET')]
+    #[Route(path: '/{id}', methods: 'GET')]
     public function show(
-        string       $slug,
+        string       $id,
         EventService $eventService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEventOrFail($slug);
+        $event = $eventService->getActiveEventOrFail($id);
 
         return $this->success([
             'data' => new EventResponse($event)
@@ -86,16 +86,15 @@ class EventController extends BaseController
      *
      * @throws VisitExistException
      */
-    #[Route(path: '/{slug}/register', methods: 'POST')]
+    #[Route(path: '/{id}/register', methods: 'POST')]
     #[IsGranted('IS_AUTHENTICATED')]
     public function register(
-        string       $slug,
+        string       $id,
         EventService $eventService,
         VisitService $visitService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEventOrFail($slug);
-
+        $event = $eventService->getActiveEventOrFail($id);
         $visitService->register($this->getUser(), $event);
 
         return $this->success();
@@ -111,17 +110,16 @@ class EventController extends BaseController
      *
      * @throws VisitExistException
      */
-    #[Route(path: '/{slug}/rate', methods: 'POST')]
+    #[Route(path: '/{id}/rate', methods: 'POST')]
     #[IsGranted('IS_AUTHENTICATED')]
     public function rate(
-        string                              $slug,
+        string                              $id,
         #[MapRequestPayload] RateRequestDTO $request,
         EventService                        $eventService,
         VisitService                        $visitService,
     ): JsonResponse
     {
-        $event = $eventService->getActiveEventOrFail($slug);
-
+        $event = $eventService->getActiveEventOrFail($id);
         $visitService->rate($this->getUser(), $event, $request->rating);
 
         return $this->success();

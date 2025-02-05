@@ -31,12 +31,15 @@ readonly class EventService
     }
 
     /**
-     * @param string $slug
+     * @param string $id
      * @return Event|null
      */
-    public function getActiveEventOrFail(string $slug): ?Event
+    public function getActiveEventOrFail(string $id): ?Event
     {
-        $event = $this->eventRepository->findOneBy(['slug' => $slug, 'active' => true]);
+        $event = $this->eventRepository->findOneBy([
+            'id'     => $id,
+            'active' => true
+        ]);
 
         if (!$event) {
             throw new NotFoundHttpException('Event not found');
