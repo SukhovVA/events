@@ -50,8 +50,10 @@ readonly class EventService
         return $event;
     }
 
-    public function update(Event $event, EventRequest $request): Event
+    public function update(string $id, EventRequest $request): Event
     {
+        $event = $this->getEventOrFail($id);
+
         $event
             ->setName($request->name)
             ->setDescription($request->description)
@@ -66,8 +68,10 @@ readonly class EventService
         return $event;
     }
 
-    public function delete(Event $event): void
+    public function delete(string $id): void
     {
+        $event = $this->getEventOrFail($id);
+
         $this->eventRepository->remove($event);
     }
 }

@@ -47,8 +47,7 @@ class EventController extends BaseController
     #[Route(path: '/{id}', methods: ['PUT'])]
     public function update(string $id, #[MapRequestPayload] EventRequest $request): JsonResponse
     {
-        $event = $this->eventService->getEventOrFail($id);
-        $this->eventService->update($event, $request);
+        $event = $this->eventService->update($id, $request);
 
         return $this->success(['data' => $event]);
     }
@@ -56,8 +55,7 @@ class EventController extends BaseController
     #[Route(path: '/{id}', methods: 'DELETE')]
     public function delete(string $id): JsonResponse
     {
-        $event = $this->eventService->getEventOrFail($id);
-        $this->eventService->delete($event);
+        $this->eventService->delete($id);
 
         return $this->json(null, Response::HTTP_NO_CONTENT);
     }
