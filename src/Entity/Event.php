@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Entity\Property\Subject;
-use App\Entity\Property\Umk;
 use App\Enum\PropertyType;
 use App\Repository\EventRepository;
 use DateTimeImmutable;
@@ -247,5 +245,10 @@ class Event
             $class = $type->getClassName();
             return $property instanceof $class;
         });
+    }
+
+    public function getPropsNames(PropertyType $type): array
+    {
+        return $this->getProp($type)->map(fn(Property $property) => $property->getName())->getValues();
     }
 }
