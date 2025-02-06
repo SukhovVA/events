@@ -3,6 +3,10 @@
 namespace App\Factory;
 
 use App\Entity\Event;
+use App\Factory\Property\GradeFactory;
+use App\Factory\Property\StudyLevelFactory;
+use App\Factory\Property\SubjectFactory;
+use App\Factory\Property\UmkFactory;
 use DateTimeImmutable;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -33,6 +37,12 @@ final class EventFactory extends PersistentProxyObjectFactory
             'academicHours' => self::faker()->randomFloat(1, 1, 10),
             'remoteLink'    => self::faker()->url(),
             'cover'         => MediaLinkFactory::createOne(),
+            'properties'    => [
+                ...SubjectFactory::randomRange(1, 2),
+                ...GradeFactory::randomRange(1, 2),
+                ...StudyLevelFactory::randomRange(1, 2),
+                ...UmkFactory::randomRange(1, 3)
+            ],
             'createdAt'     => DateTimeImmutable::createFromMutable($startsAt->modify('-2 months')),
             'deletedAt'     => self::faker()->boolean(10) ? DateTimeImmutable::createFromMutable(self::faker()->dateTimeBetween('-1 week')) : null,
         ];
