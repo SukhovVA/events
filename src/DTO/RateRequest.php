@@ -4,7 +4,7 @@ namespace App\DTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class RateRequestDTO
+readonly class RateRequest
 {
     public function __construct(
         #[Assert\NotBlank]

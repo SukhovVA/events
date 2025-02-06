@@ -3,7 +3,7 @@ controllers:
   type: attribute
   prefix: '/api/v1'
 
-#v1_controllers:
-#  resource: ../src/Controller/v1
-#  type: attribute
-#  prefix: '/api/v1'
+private:
+  resource: ../src/Controller/Private
+  type: attribute
+  prefix: '/api/v1/private'

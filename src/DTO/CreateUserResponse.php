@@ -2,7 +2,7 @@
 
 namespace App\DTO;
 
-class CreateUserDTO
+readonly class CreateUserResponse
 {
     public function __construct(
         public string $uuid,

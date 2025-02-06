@@ -2,8 +2,7 @@
 
 namespace App\Gateway;
 
-use App\DTO\CreateUserDTO;
-use App\Exception\AppException;
+use App\DTO\CreateUserResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +17,7 @@ class ProsvGateway
         private readonly LoggerInterface $prosvApiLogger,
         private readonly string          $clientId,
         private readonly string          $clientSalt,
-        string          $baseUrl,
+        string                           $baseUrl,
     )
     {
         $this->client = $client->withOptions(['base_uri' => "$baseUrl/api/external/v1/"]);
@@ -68,10 +67,11 @@ class ProsvGateway
 
     /**
      * Получение данных по пользователю на основе его uuid
+     *
      * @param string $uuid
-     * @return CreateUserDTO|null
+     * @return CreateUserResponse|null
      */
-    public function getUserDetails(string $uuid): ?CreateUserDTO
+    public function getUserDetails(string $uuid): ?CreateUserResponse
     {
         $data = ['actor' => ['uuid' => $uuid], 'attributes' => ['email', 'nameFirst', 'nameLast', 'namePatronymic']];
         $profile = $this->send($data, 'getActorAttributes');
@@ -80,7 +80,7 @@ class ProsvGateway
             return null;
         }
 
-        return new CreateUserDTO(
+        return new CreateUserResponse(
             uuid: $profile['uuid'],
             firstName: $profile['nameFirst'],
             lastName: $profile['nameLast'],

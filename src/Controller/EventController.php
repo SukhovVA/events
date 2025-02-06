@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\DTO\RateRequestDTO;
+use App\DTO\RateRequest;
 use App\Exception\VisitExistException;
 use App\Response\EventIndexResponse;
 use App\Response\EventResponse;
@@ -113,10 +113,10 @@ class EventController extends BaseController
     #[Route(path: '/{id}/rate', methods: 'POST')]
     #[IsGranted('IS_AUTHENTICATED')]
     public function rate(
-        string                              $id,
-        #[MapRequestPayload] RateRequestDTO $request,
-        EventService                        $eventService,
-        VisitService                        $visitService,
+        string                           $id,
+        #[MapRequestPayload] RateRequest $request,
+        EventService                     $eventService,
+        VisitService                     $visitService,
     ): JsonResponse
     {
         $event = $eventService->getActiveEventOrFail($id);

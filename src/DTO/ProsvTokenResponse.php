@@ -2,7 +2,7 @@
 
 namespace App\DTO;
 
-class TokenDTO
+readonly class ProsvTokenResponse
 {
     public function __construct(
         public string $header,

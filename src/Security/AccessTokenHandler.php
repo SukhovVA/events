@@ -2,7 +2,7 @@
 
 namespace App\Security;
 
-use App\DTO\TokenDTO;
+use App\DTO\ProsvTokenResponse;
 use App\Exception\AccessDeniedException;
 use App\Gateway\ProsvGateway;
 use App\Service\Hmac;
@@ -46,7 +46,7 @@ readonly class AccessTokenHandler implements AccessTokenHandlerInterface
      *
      * @throws AccessDeniedException
      */
-    private function decodeToken(string $accessToken): TokenDTO
+    private function decodeToken(string $accessToken): ProsvTokenResponse
     {
         $bearerToken = explode('.', $accessToken);
         if (count($bearerToken) !== 3) {
@@ -60,7 +60,7 @@ readonly class AccessTokenHandler implements AccessTokenHandlerInterface
             throw new AccessDeniedException('Invalid token payload');
         }
 
-        return new TokenDTO($jwtArr['header'], $jwtArr['payload'], $jwtArr['signature'], $decodedPayload);
+        return new ProsvTokenResponse($jwtArr['header'], $jwtArr['payload'], $jwtArr['signature'], $decodedPayload);
     }
 
     /**
@@ -68,7 +68,7 @@ readonly class AccessTokenHandler implements AccessTokenHandlerInterface
      *
      * @throws AccessDeniedException|Exception
      */
-    private function validateToken(TokenDTO $tokenDTO): void
+    private function validateToken(ProsvTokenResponse $tokenDTO): void
     {
         if ($this->isExpired($tokenDTO->decodedPayload->exp)) {
             throw new AccessDeniedException('Token expired');
