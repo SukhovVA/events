@@ -81,4 +81,9 @@ class MediaLink
 
         return $this;
     }
+
+    public function getPath(): string
+    {
+        return "/uploads/{$this->createdAt?->format('Y/m')}/$this->name";
+    }
 }

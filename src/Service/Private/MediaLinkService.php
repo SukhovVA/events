@@ -55,8 +55,7 @@ readonly class MediaLinkService {
     public function delete(string $id): void
     {
         $mediaLink = $this->getOrFail($id);
-        $datePath = $mediaLink->getCreatedAt()->format('Y/m');
 
-        $this->minioStorage->delete("/uploads/$datePath/{$mediaLink->getName()}");
+        $this->minioStorage->delete($mediaLink->getPath());
     }
 }

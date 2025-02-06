@@ -14,11 +14,11 @@ readonly class EventResponse implements JsonSerializable
         return [
             'name'           => $this->event->getName(),
             'slug'           => $this->event->getSlug(),
-            'cover'          => $this->event->getCover()->getName(),
             'description'    => $this->event->getDescription(),
             'academic_hours' => $this->event->getAcademicHours(),
             'starts_at'      => $this->event->getStartsAt(),
             'ends_at'        => $this->event->getEndsAt(),
+            'cover'          => $this->event->getCover()->getPath(),
         ];
     }
 }

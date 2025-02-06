@@ -26,7 +26,7 @@ class EventRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('e')
             ->select([
                 'partial e.{id, slug, name, startsAt, endsAt, academicHours}',
-                'partial m.{id, name}'
+                'partial m.{id, name, createdAt}'
             ])
             ->leftJoin('e.cover', 'm')
             ->where('e.active = true')
