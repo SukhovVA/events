@@ -68,6 +68,6 @@ readonly class EventService
 
     public function delete(Event $event): void
     {
-        $this->eventRepository->delete($event);
+        $this->eventRepository->remove($event);
     }
 }

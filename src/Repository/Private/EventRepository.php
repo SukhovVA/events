@@ -3,6 +3,7 @@
 namespace App\Repository\Private;
 
 use App\Entity\Event;
+use App\Trait\SaveableTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,17 +18,5 @@ class EventRepository extends \App\Repository\EventRepository
 
         $filters = $this->getEntityManager()->getFilters();
         $filters->disable('soft_deleteable');
-    }
-
-    public function save(Event $event): void
-    {
-        $this->getEntityManager()->persist($event);
-        $this->getEntityManager()->flush();
-    }
-
-    public function delete(Event $event): void
-    {
-        $this->getEntityManager()->remove($event);
-        $this->getEntityManager()->flush();
     }
 }
