@@ -3,10 +3,13 @@
 namespace App\Gateway;
 
 use App\DTO\CreateUserResponse;
+use App\DTO\ProsvPropertyResponse;
+use App\Enum\ProsvAttribute;
+use App\Exception\ProsvException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpFoundation\Response;
-
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
@@ -18,6 +21,7 @@ class ProsvGateway
         private readonly string          $clientId,
         private readonly string          $clientSalt,
         string                           $baseUrl,
+        private NormalizerInterface $serializer
     )
     {
         $this->client = $client->withOptions(['base_uri' => "$baseUrl/api/external/v1/"]);
@@ -87,5 +91,28 @@ class ProsvGateway
             fatherName: $profile['namePatronymic'],
             email: $profile['email'][0]['value'],
         );
+    }
+
+    /**
+     * Получение справочника по атрибуту
+     * request body:  {"attribute":"series","limit":100,"page":2}
+     * @param ProsvAttribute $attribute - атрибут справочника
+     * @return mixed
+     */
+    public function getAttributes(ProsvAttribute $attribute): mixed
+    {
+        $data = ['attribute' => $attribute, 'keys' => ['uuid', 'name']];
+
+        if ($attribute == ProsvAttribute::District) {
+            $data["keys"][] = "code";
+        }
+
+        $response = $this->send($data, 'getReference');
+
+        if (!isset($response['records'])) {
+            throw new ProsvException('ProsvGateway::getAttributes empty records');
+        }
+
+        return $this->serializer->denormalize($response['records'], ProsvPropertyResponse::class . '[]');
     }
 }

@@ -8,10 +8,11 @@ use App\Entity\Property\StudyLevel;
 use App\Entity\Property\Subject;
 use App\Entity\Property\Umk;
 use App\Enum\PropertyType;
+use App\Repository\PropertyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: PropertyRepository::class)]
 #[ORM\Table(name: 'property')]
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
