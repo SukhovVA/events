@@ -7,11 +7,11 @@ use DateTimeImmutable;
 
 interface EventFactoryInterface {
     public function create(
-        string $name,
-        string $description,
+        string            $name,
+        string            $description,
         DateTimeImmutable $startsAt,
         DateTimeImmutable $endsAt,
-        bool $active,
-        ?float $academicHours
+        bool              $active,
+        ?float            $academicHours
     ): Event;
 }

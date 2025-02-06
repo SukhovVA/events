@@ -30,7 +30,7 @@ readonly class VisitService
         }
 
         $visit = $this->factory->createVisit($user, $event, $data);
-        $this->visitRepository->save($visit, true);
+        $this->visitRepository->save($visit);
 
         $this->eventDispatcher->dispatch(new RegistrationEvent($user, $event));
 
@@ -50,7 +50,7 @@ readonly class VisitService
 
         $existingVisit->setRating($rating);
 
-        $this->visitRepository->save($existingVisit, true);
+        $this->visitRepository->save($existingVisit);
 
         return $existingVisit;
     }

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Event;
 use App\Entity\User;
 use App\Entity\Visit;
+use App\Trait\SaveableTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class VisitRepository extends ServiceEntityRepository
 {
+    use SaveableTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Visit::class);
@@ -21,14 +24,5 @@ class VisitRepository extends ServiceEntityRepository
     public function findExistingVisit(User $user, Event $event): ?Visit
     {
         return $this->findOneBy(['visitor' => $user, 'event' => $event]);
-    }
-
-    public function save(Visit $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 }

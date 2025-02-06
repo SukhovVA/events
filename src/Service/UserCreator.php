@@ -20,7 +20,7 @@ readonly class UserCreator
         $user->setEmail($userData->email);
         $user->setRoles(['ROLE_USER']);
 
-        $this->userRepository->save($user, true);
+        $this->userRepository->save($user);
 
         return $user;
     }
