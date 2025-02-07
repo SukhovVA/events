@@ -98,6 +98,7 @@ class ProsvGateway
      * request body:  {"attribute":"series","limit":100,"page":2}
      * @param ProsvAttribute $attribute - атрибут справочника
      * @return mixed
+     * @throws ProsvException
      */
     public function getAttributes(ProsvAttribute $attribute): mixed
     {

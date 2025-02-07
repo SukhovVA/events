@@ -10,7 +10,7 @@ use App\Exception\VisitExistException;
 use App\Repository\VisitRepository;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-readonly class VisitService
+class VisitService
 {
     public function __construct(
         private VisitRepository          $visitRepository,
