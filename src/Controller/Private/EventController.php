@@ -5,6 +5,7 @@ namespace App\Controller\Private;
 use App\Controller\BaseController;
 use App\DTO\EventRequest;
 use App\Response\EventIndexResponse;
+use App\Response\Private\EventResponse;
 use App\Service\Private\EventService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,9 +32,9 @@ class EventController extends BaseController
     #[Route(path: '/{id}', methods: 'GET')]
     public function show(string $id): JsonResponse
     {
-        $event = $this->eventService->getEventOrFail($id);
-
-        return $this->success(['data' => $event]);
+        return $this->success([
+            'data' => new EventResponse($this->eventService->getEventOrFail($id))
+        ]);
     }
 
     #[Route(methods: 'POST')]

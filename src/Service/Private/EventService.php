@@ -7,7 +7,7 @@ use App\Entity\Event;
 use App\Repository\Private\EventRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-readonly class EventService
+class EventService
 {
     public function __construct(
         private EventRepository       $eventRepository,

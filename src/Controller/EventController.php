@@ -63,7 +63,7 @@ class EventController extends BaseController
      *
      * @throws NotFoundHttpException Если мероприятие не найдено.
      */
-    #[Route(path: '/{id}', methods: 'GET')]
+    #[Route(path: '/{id}', requirements: ['id' => '\d+'], methods: 'GET')]
     public function show(
         string       $id,
         EventService $eventService,

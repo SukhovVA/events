@@ -23,7 +23,7 @@ class EventControllerTest extends WebTestCase
     public function testShowNotFound(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/events/nonexistent');
+        $client->request('GET', '/api/v1/events/nonexistent');
         $this->assertResponseStatusCodeSame(404);
     }
 }
