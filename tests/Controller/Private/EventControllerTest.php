@@ -63,12 +63,12 @@ class EventControllerTest extends WebTestCase
                 'meta' => $meta,
             ]);
 
-        // Act
         $client = static::createClient();
         $client->loginUser($this->testUser);
         $container = $client->getContainer();
         $container->set(EventService::class, $this->eventService);
 
+        // Act
         $client->request('GET', '/api/v1/private/events');
         $response = $client->getResponse();
 
@@ -102,11 +102,13 @@ class EventControllerTest extends WebTestCase
             ->with($testId)
             ->willReturn($this->dummyEvent);
 
-        // Act
         $client = static::createClient();
         $client->loginUser($this->testUser);
         $container = $client->getContainer();
         $container->set(EventService::class, $this->eventService);
+
+        // Act
+
         $client->request('GET', "/api/v1/private/events/$testId");
         $response = $client->getResponse();
 
@@ -124,27 +126,28 @@ class EventControllerTest extends WebTestCase
         $this->assertArrayHasKey('cover', $data);
     }
 
-    public function testUnauthorizedResponse()
+    /**
+     * @dataProvider getUrlsForRegularUsers
+     */
+    public function testAccessDeniedForRegularUsers(string $httpMethod, string $url): void
     {
         // Arrange
-        $page = 1;
-        $dummyEvents = [$this->dummyEvent];
-        $meta = ['page' => $page, 'total' => 2];
-
-        $this->eventService->expects($this->never())
-            ->method('getEvents')
-            ->with($page)
-            ->willReturn([
-                'data' => $dummyEvents,
-                'meta' => $meta,
-            ]);
+        $client = static::createClient();
 
         // Act
-        $client = static::createClient();
-        $container = $client->getContainer();
-        $container->set(EventService::class, $this->eventService);
-        $client->request('GET', '/api/v1/private/events');
+        $client->request($httpMethod, $url);
+        $client->request($httpMethod, $url);
 
+        // Assert
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function getUrlsForRegularUsers(): \Generator
+    {
+        yield ['GET', '/api/v1/private/events'];
+        yield ['GET', '/api/v1/private/events/1'];
+        yield ['POST', '/api/v1/private/events'];
+        yield ['PUT', '/api/v1/private/events/1'];
+        yield ['DELETE', '/api/v1/private/events/1'];
     }
 }
