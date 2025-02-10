@@ -12,6 +12,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
+#[\AllowDynamicProperties]
 class EventControllerTest extends WebTestCase
 {
     private ?EventService $eventService = null;
@@ -26,8 +27,9 @@ class EventControllerTest extends WebTestCase
             ->setUuid('12ab6a71-ca4e-4cf4-8026-9f19f7818001')
             ->setRoles(['ROLE_ADMIN']);
 
-        $this->dummyEvent = (new Event())
-            ->setName('Dummy Event')
+        $this->dummyEvent = new Event();
+
+        $this->dummyEvent->setName('Dummy Event')
             ->setDescription('This is a dummy event for testing purposes.')
             ->setStartsAt(new DateTimeImmutable('2025-01-01 10:00:00'))
             ->setEndsAt(new DateTimeImmutable('2025-01-01 12:00:00'))
@@ -142,9 +144,7 @@ class EventControllerTest extends WebTestCase
         $container = $client->getContainer();
         $container->set(EventService::class, $this->eventService);
         $client->request('GET', '/api/v1/private/events');
-        $response = $client->getResponse();
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-
     }
 }
