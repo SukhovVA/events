@@ -4,23 +4,22 @@ declare(strict_types=1);
 namespace App\Tests\Controller\Private;
 
 use AllowDynamicProperties;
-use App\Entity\Event;
-use App\Entity\MediaLink;
 use App\Entity\User;
+use App\Factory\EventFactory;
 use App\Service\Private\EventService;
-use DateTime;
-use DateTimeImmutable;
 use Generator;
 use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Zenstruck\Foundry\Test\Factories;
 
 #[AllowDynamicProperties]
 class EventControllerTest extends WebTestCase
 {
+    use Factories;
     private MockObject|EventService $eventService;
     private User $testUser;
-    private Event $dummyEvent;
 
     protected function setUp(): void
     {
@@ -30,33 +29,14 @@ class EventControllerTest extends WebTestCase
             ->setEmail('test@test.com')
             ->setUuid('12ab6a71-ca4e-4cf4-8026-9f19f7818001')
             ->setRoles(['ROLE_ADMIN']);
-
-        $this->dummyEvent = new Event();
-
-        $this->dummyEvent->setName('Dummy Event')
-            ->setDescription('This is a dummy event for testing purposes.')
-            ->setStartsAt(new DateTimeImmutable('2025-01-01 10:00:00'))
-            ->setEndsAt(new DateTimeImmutable('2025-01-01 12:00:00'))
-            ->setAcademicHours(2.0)
-            ->setRemoteLink('https://example.com/event')
-            ->setSlug('dummy-event')
-            ->setActive(true);
-
-        $dummyMediaLink = new MediaLink();
-        $dummyMediaLink
-            ->setCreatedAt(new DateTime())
-            ->setName('Medialink Test Name')
-            ->setOriginalName('Medialink Test Original Name')
-            ->setType(1);
-
-        $this->dummyEvent->setCover($dummyMediaLink);
     }
 
     public function testIndex(): void
     {
         // Arrange
+        $client = $this->getKernelBrowser();
+        $dummyEvents = EventFactory::new()->withoutPersisting()->many(2)->create();
         $page = 1;
-        $dummyEvents = [$this->dummyEvent];
         $meta = ['page' => $page, 'total' => 2];
 
         $this->eventService->expects($this->once())
@@ -66,11 +46,6 @@ class EventControllerTest extends WebTestCase
                 'data' => $dummyEvents,
                 'meta' => $meta,
             ]);
-
-        $client = static::createClient();
-        $client->loginUser($this->testUser);
-        $container = $client->getContainer();
-        $container->set(EventService::class, $this->eventService);
 
         // Act
         $client->request('GET', '/api/v1/private/events');
@@ -100,16 +75,13 @@ class EventControllerTest extends WebTestCase
     public function testShow(): void
     {
         // Arrange
+        $client = $this->getKernelBrowser();
+        $dummyEvent = EventFactory::new()->withoutPersisting()->create();
         $testId = 123;
         $this->eventService->expects($this->once())
             ->method('getEventOrFail')
             ->with($testId)
-            ->willReturn($this->dummyEvent);
-
-        $client = static::createClient();
-        $client->loginUser($this->testUser);
-        $container = $client->getContainer();
-        $container->set(EventService::class, $this->eventService);
+            ->willReturn($dummyEvent);
 
         // Act
 
@@ -133,22 +105,19 @@ class EventControllerTest extends WebTestCase
     public function testCreate(): void
     {
         // Arrange
+        $client = $this->getKernelBrowser();
+        $dummyEvent = EventFactory::new()->withoutPersisting()->create();
         $payload = [
-            'name'        => $this->dummyEvent->getName(),
-            'description' => $this->dummyEvent->getDescription(),
-            'startsAt'    => $this->dummyEvent->getStartsAt()->format('Y-m-d H:i:s'),
-            'endsAt'      => $this->dummyEvent->getEndsAt()->format('Y-m-d H:i:s'),
-            'remoteLink'  => $this->dummyEvent->getRemoteLink(),
+            'name'        => $dummyEvent->getName(),
+            'description' => $dummyEvent->getDescription(),
+            'startsAt'    => $dummyEvent->getStartsAt()->format('Y-m-d H:i:s'),
+            'endsAt'      => $dummyEvent->getEndsAt()->format('Y-m-d H:i:s'),
+            'remoteLink'  => $dummyEvent->getRemoteLink(),
         ];
 
         $this->eventService->expects($this->once())
             ->method('create')
-            ->willReturn($this->dummyEvent);
-
-        $client = static::createClient();
-        $client->loginUser($this->testUser);
-        $container = $client->getContainer();
-        $container->set(EventService::class, $this->eventService);
+            ->willReturn($dummyEvent);
 
         // Act
         $client->jsonRequest(
@@ -166,13 +135,13 @@ class EventControllerTest extends WebTestCase
 
         $data = $content['data'];
         $this->assertArrayHasKey('id', $data);
-        $this->assertEquals($this->dummyEvent->getName(), $data['name']);
-        $this->assertEquals($this->dummyEvent->getDescription(), $data['description']);
-        $this->assertEquals($this->dummyEvent->getStartsAt()->format('Y-m-d\TH:i:sP'), $data['starts_at']);
-        $this->assertEquals($this->dummyEvent->getEndsAt()->format('Y-m-d\TH:i:sP'), $data['ends_at']);
-        $this->assertEquals($this->dummyEvent->getRemoteLink(), $data['remote_link']);
-        $this->assertEquals($this->dummyEvent->getAcademicHours(), $data['academic_hours']);
-        $this->assertEquals($this->dummyEvent->getSlug(), $data['slug']);
+        $this->assertEquals($dummyEvent->getName(), $data['name']);
+        $this->assertEquals($dummyEvent->getDescription(), $data['description']);
+        $this->assertEquals($dummyEvent->getStartsAt()->format('Y-m-d\TH:i:sP'), $data['starts_at']);
+        $this->assertEquals($dummyEvent->getEndsAt()->format('Y-m-d\TH:i:sP'), $data['ends_at']);
+        $this->assertEquals($dummyEvent->getRemoteLink(), $data['remote_link']);
+        $this->assertEquals($dummyEvent->getAcademicHours(), $data['academic_hours']);
+        $this->assertEquals($dummyEvent->getSlug(), $data['slug']);
     }
 
     /**
@@ -197,5 +166,17 @@ class EventControllerTest extends WebTestCase
         yield ['POST', '/api/v1/private/events'];
         yield ['PUT', '/api/v1/private/events/1'];
         yield ['DELETE', '/api/v1/private/events/1'];
+    }
+
+    /**
+     * @return KernelBrowser
+     */
+    protected function getKernelBrowser(): KernelBrowser
+    {
+        $client = static::createClient();
+        $client->loginUser($this->testUser);
+        $container = $client->getContainer();
+        $container->set(EventService::class, $this->eventService);
+        return $client;
     }
 }
