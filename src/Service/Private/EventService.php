@@ -58,8 +58,8 @@ class EventService
         $event
             ->setName($request->name)
             ->setDescription($request->description)
-            ->setStartsAt($request->startsAt)
-            ->setEndsAt($request->endsAt)
+            ->setStartsAt(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $request->startsAt))
+            ->setEndsAt(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $request->endsAt))
             ->setAcademicHours($request->academicHours)
             ->setActive($request->active)
         ;
