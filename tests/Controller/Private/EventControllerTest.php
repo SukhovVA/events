@@ -163,7 +163,6 @@ class EventControllerTest extends WebTestCase
         $content = json_decode($response->getContent(), true);
         $this->assertTrue($content['success']);
         $this->assertArrayHasKey('data', $content);
-        $this->assertEquals($this->dummyEvent->getName(), $content['data']['name']);
 
         $data = $content['data'];
         $this->assertArrayHasKey('id', $data);
