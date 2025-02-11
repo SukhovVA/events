@@ -5,6 +5,7 @@ namespace App\Service\Private;
 use App\DTO\EventRequest;
 use App\Entity\Event;
 use App\Repository\Private\EventRepository;
+use DateTimeImmutable;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EventService
@@ -39,8 +40,8 @@ class EventService
         $event = $this->eventFactory->create(
             $request->name,
             $request->description,
-            $request->startsAt,
-            $request->endsAt,
+            DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $request->startsAt),
+            DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $request->endsAt),
             $request->active,
             $request->academicHours
         );

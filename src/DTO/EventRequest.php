@@ -2,7 +2,6 @@
 
 namespace App\DTO;
 
-use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 readonly class EventRequest
@@ -20,15 +19,15 @@ readonly class EventRequest
 
         #[Assert\NotBlank]
         #[Assert\DateTime]
-        public DateTimeImmutable $startsAt,
+        public string            $startsAt,
 
         #[Assert\NotBlank]
         #[Assert\DateTime]
-        public DateTimeImmutable $endsAt,
+        public string            $endsAt,
 
         #[Assert\NotBlank]
         #[Assert\Type('string')]
-        #[Assert\Url]
+        #[Assert\Url(requireTld: false)]
         public string            $remoteLink,
 
         #[Assert\Type('float')]

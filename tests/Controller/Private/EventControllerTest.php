@@ -3,20 +3,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller\Private;
 
+use AllowDynamicProperties;
 use App\Entity\Event;
 use App\Entity\MediaLink;
 use App\Entity\User;
 use App\Service\Private\EventService;
+use DateTime;
 use DateTimeImmutable;
+use Generator;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
-#[\AllowDynamicProperties]
+#[AllowDynamicProperties]
 class EventControllerTest extends WebTestCase
 {
-    private ?EventService $eventService = null;
-    private MockObject|User $testUser;
+    private MockObject|EventService $eventService;
+    private User $testUser;
+    private Event $dummyEvent;
 
     protected function setUp(): void
     {
@@ -40,7 +44,7 @@ class EventControllerTest extends WebTestCase
 
         $dummyMediaLink = new MediaLink();
         $dummyMediaLink
-            ->setCreatedAt(new \DateTime())
+            ->setCreatedAt(new DateTime())
             ->setName('Medialink Test Name')
             ->setOriginalName('Medialink Test Original Name')
             ->setType(1);
@@ -126,6 +130,52 @@ class EventControllerTest extends WebTestCase
         $this->assertArrayHasKey('cover', $data);
     }
 
+    public function testCreate(): void
+    {
+        // Arrange
+        $payload = [
+            'name'        => $this->dummyEvent->getName(),
+            'description' => $this->dummyEvent->getDescription(),
+            'startsAt'    => $this->dummyEvent->getStartsAt()->format('Y-m-d H:i:s'),
+            'endsAt'      => $this->dummyEvent->getEndsAt()->format('Y-m-d H:i:s'),
+            'remoteLink'  => $this->dummyEvent->getRemoteLink(),
+        ];
+
+        $this->eventService->expects($this->once())
+            ->method('create')
+            ->willReturn($this->dummyEvent);
+
+        $client = static::createClient();
+        $client->loginUser($this->testUser);
+        $container = $client->getContainer();
+        $container->set(EventService::class, $this->eventService);
+
+        // Act
+        $client->jsonRequest(
+            method: 'POST',
+            uri: '/api/v1/private/events',
+            parameters: $payload
+        );
+        $response = $client->getResponse();
+
+        // Assert
+        $this->assertResponseIsSuccessful();
+        $content = json_decode($response->getContent(), true);
+        $this->assertTrue($content['success']);
+        $this->assertArrayHasKey('data', $content);
+        $this->assertEquals($this->dummyEvent->getName(), $content['data']['name']);
+
+        $data = $content['data'];
+        $this->assertArrayHasKey('id', $data);
+        $this->assertEquals($this->dummyEvent->getName(), $data['name']);
+        $this->assertEquals($this->dummyEvent->getDescription(), $data['description']);
+        $this->assertEquals($this->dummyEvent->getStartsAt()->format('Y-m-d\TH:i:sP'), $data['starts_at']);
+        $this->assertEquals($this->dummyEvent->getEndsAt()->format('Y-m-d\TH:i:sP'), $data['ends_at']);
+        $this->assertEquals($this->dummyEvent->getRemoteLink(), $data['remote_link']);
+        $this->assertEquals($this->dummyEvent->getAcademicHours(), $data['academic_hours']);
+        $this->assertEquals($this->dummyEvent->getSlug(), $data['slug']);
+    }
+
     /**
      * @dataProvider getUrlsForRegularUsers
      */
@@ -136,13 +186,12 @@ class EventControllerTest extends WebTestCase
 
         // Act
         $client->request($httpMethod, $url);
-        $client->request($httpMethod, $url);
 
         // Assert
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
 
-    public function getUrlsForRegularUsers(): \Generator
+    public function getUrlsForRegularUsers(): Generator
     {
         yield ['GET', '/api/v1/private/events'];
         yield ['GET', '/api/v1/private/events/1'];

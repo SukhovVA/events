@@ -42,7 +42,7 @@ class EventController extends BaseController
     {
         $event = $this->eventService->create($request);
 
-        return $this->success(['data' => $event]);
+        return $this->success(['data' => new EventResponse($event)]);
     }
 
     #[Route(path: '/{id}', methods: ['PUT'])]
