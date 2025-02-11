@@ -1,5 +1,5 @@
 # Используем образ с PHP и Composer
-image: php:8.1-cli
+image: php:8.3-cli
 
 # Определяем этапы (stages)
 stages:
