@@ -52,6 +52,8 @@ test:
   script:
     - echo "Проверка версии PHP"
     - php -v
+    - echo "Установка Redis через pecl и включение расширения"
+    - php -m | grep -q redis || (pecl install redis && docker-php-ext-enable redis)
     - echo "Устанавливаем libpq-dev для сборки pdo_pgsql"
     - apt-get update && apt-get install -y libpq-dev
     - echo "Устанавливаем PHP-расширения pdo_pgsql и pgsql"
