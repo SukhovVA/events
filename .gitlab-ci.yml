@@ -22,6 +22,10 @@ variables:
   APP_ENV: "prod"
   DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
+before_script:
+  - echo "DATABASE_URL=$DATABASE_URL" > .env
+  - echo "APP_ENV=$APP_ENV" >> .env
+
 # Этап сборки
 build:
   stage: build
