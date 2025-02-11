@@ -1,72 +1,78 @@
-# Используем образ с PHP и Composer
 image: php:8.3-cli
 
-# Определяем этапы (stages)
 stages:
   - build
   - test
   - deploy
 
-# Кэшируем зависимости Composer для ускорения сборки
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - vendor/
 
-# Переменные окружения
 variables:
   POSTGRES_DB: test_db
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_HOST_AUTH_METHOD: trust
-  APP_ENV: "prod"
+  APP_ENV: "test"
   DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
 before_script:
-  - echo "DATABASE_URL=$DATABASE_URL" > .env
+  - export ACCESS_SECRET=$(openssl rand -hex 21)
+  - echo "ACCESS_SECRET=$ACCESS_SECRET" >> .env
+  - echo "DATABASE_URL=$DATABASE_URL" >> .env
   - echo "APP_ENV=$APP_ENV" >> .env
+  - if [ "$APP_ENV" = "test" ]; then echo "ID_PROSV_CLIENT_ID=$ID_PROSV_CLIENT_ID" >> .env.test; fi
+  - if [ "$APP_ENV" = "test" ]; then echo "ID_PROSV_CLIENT_SECRET=$ID_PROSV_CLIENT_SECRET" >> .env.test; fi
 
-# Этап сборки
 build:
   stage: build
   script:
-    - apt-get update && apt-get install -y unzip
+    - echo "Обновление списка пакетов и установка зависимостей (unzip, libz-dev, libssl-dev, libpq-dev)"
+    - apt-get update && apt-get install -y unzip libz-dev libssl-dev libpq-dev
+    - echo "Установка Composer"
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - echo "Установка Redis через pecl и включение расширения"
+    - pecl install redis && docker-php-ext-enable redis
+    - echo "Установка PHP-расширений pdo_pgsql и pgsql"
+    - docker-php-ext-install pdo_pgsql pgsql
+    - echo "Установка зависимостей Composer"
     - composer install --prefer-dist --no-progress --no-suggest
   artifacts:
     paths:
       - vendor/
 
-# Этап тестирования
 test:
   stage: test
   services:
     - postgres:13
   script:
+    - echo "Проверка версии PHP"
     - php -v
-    - echo "Installing PostgreSQL extension..."
-    - apt-get update && apt-get install -y libpq-dev
-    - docker-php-ext-install pdo_pgsql pgsql
-    - echo "Подготовка базы данных PostgreSQL..."
+    - echo "Установка PostgreSQL client"
     - apt-get update && apt-get install -y postgresql-client
+    - echo "Проверка версии psql"
     - psql --version
+    - echo "Создание расширения pgcrypto в базе данных PostgreSQL, если не создано"
     - psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
-    - echo "Выполнение миграций Doctrine..."
+    - echo "Выполняем миграции Doctrine"
     - php bin/console doctrine:migrations:migrate --no-interaction
-    - echo "Запуск тестов..."
+    - echo "Запуск тестов с выводом покрытия"
     - php bin/phpunit --coverage-text --colors=never
   allow_failure: false
 
-# Этап деплоя (пример для деплоя на сервер через SSH)
 deploy:
   stage: deploy
   script:
-    - echo "Деплой на сервер..."
+    - echo "Установка SSH клиента и rsync для деплоя"
     - apt-get update && apt-get install -y openssh-client rsync
+    - echo "Настройка SSH-ключей"
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $DEPLOY_SERVER >> ~/.ssh/known_hosts
+    - echo "Выполняем rsync для деплоя на сервер"
     - rsync -avz --delete ./ deployer@$DEPLOY_SERVER:/var/www/app
   only:
     - main
