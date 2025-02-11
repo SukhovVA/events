@@ -50,7 +50,11 @@ test:
   script:
     - echo "Проверка версии PHP"
     - php -v
-    - echo "Установка PostgreSQL client"
+    - echo "Устанавливаем libpq-dev для сборки pdo_pgsql"
+    - apt-get update && apt-get install -y libpq-dev
+    - echo "Устанавливаем PHP-расширения pdo_pgsql и pgsql"
+    - docker-php-ext-install pdo_pgsql pgsql
+    - echo "Устанавливаем PostgreSQL client"
     - apt-get update && apt-get install -y postgresql-client
     - echo "Проверка версии psql"
     - psql --version
