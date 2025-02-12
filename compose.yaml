@@ -65,6 +65,8 @@ services:
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
     volumes:
       - ./.docker/data/minio:/data
+    ports:
+      - "9001:9001"
     networks:
       - app-network
 
@@ -92,6 +94,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: ${SERVICE_NAME}_redis
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 
@@ -99,7 +103,7 @@ services:
     image: axllent/mailpit
     container_name: ${SERVICE_NAME}_mailer
     ports:
-      - "1025"
+      - "1025:1025"
       - "8025:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
