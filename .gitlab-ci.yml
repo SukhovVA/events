@@ -18,27 +18,13 @@ variables:
   APP_ENV: "test"
   DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
-before_script:
-  - echo "Генерация ACCESS_SECRET (42 символа)"
-  - export ACCESS_SECRET=$(openssl rand -hex 21)
-  - echo "ACCESS_SECRET=$ACCESS_SECRET" >> .env
-  - echo "Записываем DATABASE_URL и APP_ENV в .env"
-  - echo "DATABASE_URL=$DATABASE_URL" >> .env
-  - echo "APP_ENV=$APP_ENV" >> .env
-  - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_ID в .env.test"; echo "ID_PROSV_CLIENT_ID=$ID_PROSV_CLIENT_ID" >> .env.test; fi
-  - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_SECRET в .env.test"; echo "ID_PROSV_CLIENT_SECRET=$ID_PROSV_CLIENT_SECRET" >> .env.test; fi
-
 build:
   stage: build
   script:
-    - echo "Обновление списка пакетов и установка зависимостей (unzip, libz-dev, libssl-dev, libpq-dev)"
-    - apt-get update && apt-get install -y unzip libz-dev libssl-dev libpq-dev
+    - echo "Обновление списка пакетов и установка зависимостей"
+    - apt-get update && apt-get install -y unzip libz-dev libssl-dev
     - echo "Установка Composer"
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - echo "Установка Redis через pecl и включение расширения"
-    - pecl install redis && docker-php-ext-enable redis
-    - echo "Установка PHP-расширений pdo_pgsql и pgsql"
-    - docker-php-ext-install pdo_pgsql pgsql
     - echo "Установка зависимостей Composer"
     - composer install --prefer-dist --no-progress --no-suggest
   artifacts:
@@ -49,21 +35,26 @@ test:
   stage: test
   services:
     - postgres:13
+  before_script:
+    - echo "Генерация ACCESS_SECRET (42 символа)"
+    - export ACCESS_SECRET=$(openssl rand -hex 21)
+    - echo "ACCESS_SECRET=$ACCESS_SECRET" >> .env
+    - echo "Записываем DATABASE_URL и APP_ENV в .env"
+    - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    - echo "APP_ENV=$APP_ENV" >> .env
+    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_ID в .env.test"; echo "ID_PROSV_CLIENT_ID=$ID_PROSV_CLIENT_ID" >> .env.test; fi
+    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_SECRET в .env.test"; echo "ID_PROSV_CLIENT_SECRET=$ID_PROSV_CLIENT_SECRET" >> .env.test; fi
   script:
     - echo "Проверка версии PHP"
     - php -v
     - echo "Установка Redis через pecl и включение расширения"
     - php -m | grep -q redis || (pecl install redis && docker-php-ext-enable redis)
     - echo "Устанавливаем libpq-dev для сборки pdo_pgsql"
-    - apt-get update && apt-get install -y libpq-dev
+    - apt-get update && apt-get install -y libpq-dev postgresql-client
     - echo "Устанавливаем PHP-расширения pdo_pgsql и pgsql"
     - docker-php-ext-install pdo_pgsql pgsql
-    - echo "Устанавливаем PostgreSQL client"
-    - apt-get update && apt-get install -y postgresql-client
     - echo "Проверка версии psql"
     - psql --version
-    - echo "Создание расширения pgcrypto в базе данных PostgreSQL, если не создано"
-    - psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
     - echo "Выполняем миграции Doctrine"
     - php bin/console doctrine:migrations:migrate --no-interaction
     - echo "Наполнение базы данных командой app:update-props"
