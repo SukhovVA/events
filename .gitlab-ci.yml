@@ -32,7 +32,7 @@ build:
   stage: build
   script:
     - echo "Обновление списка пакетов и установка зависимостей"
-    - apt-get update && apt-get install -y unzip libz-dev libssl-dev
+    - apt-get update && apt-get install -q -y unzip libz-dev libssl-dev
     - echo "Установка Composer"
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - echo "Установка зависимостей Composer"
@@ -70,14 +70,14 @@ deploy:
   stage: deploy
   script:
     - echo "Установка SSH клиента и rsync для деплоя"
-    - apt-get update && apt-get install -y openssh-client rsync
+    - apt-get update && apt-get install -q -y openssh-client rsync
     - echo "Настройка SSH-ключей"
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $DEPLOY_SERVER >> ~/.ssh/known_hosts
     - echo "Выполняем rsync для деплоя на сервер"
-    - rsync -q -avz --delete ./ deployer@$DEPLOY_SERVER:/var/www/app
+    - rsync -q -avz --delete . $USERNAME@$SERVER_IP:/var/www/app --exclude=.git --exclude=.env --exclude=var/cache --exclude=var/log
     - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console cache:clear --env=$APP_ENV"
     - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console cache:warmup --env=$APP_ENV"
     - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console doctrine:migrations:migrate --no-interaction --env=$APP_ENV"
