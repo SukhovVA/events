@@ -19,7 +19,7 @@ readonly class EventResponse implements JsonSerializable
             'academic_hours' => $this->event->getAcademicHours(),
             'starts_at'      => $this->event->getStartsAt(),
             'ends_at'        => $this->event->getEndsAt(),
-            'cover'          => $this->event->getCover()->getPath(),
+            'cover' => $this->event->getCover()?->getPath(),
             'subjects'     => $this->event->getPropsNames(PropertyType::Subject),
             'umks'         => $this->event->getPropsNames(PropertyType::Umk),
             'grades'       => $this->event->getPropsNames(PropertyType::Grade),
