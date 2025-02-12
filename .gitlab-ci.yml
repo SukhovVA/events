@@ -11,12 +11,19 @@ cache:
     - vendor/
 
 variables:
-  POSTGRES_DB: test_db
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
   POSTGRES_HOST_AUTH_METHOD: trust
   APP_ENV: "test"
   DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+
+  before_script:
+    - echo "Генерация ACCESS_SECRET (42 символа)"
+    - export ACCESS_SECRET=$(openssl rand -hex 21)
+    - echo "ACCESS_SECRET=$ACCESS_SECRET" >> .env
+    - echo "Записываем DATABASE_URL и APP_ENV в .env"
+    - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    - echo "APP_ENV=$APP_ENV" >> .env
+    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_ID в .env.test"; echo "ID_PROSV_CLIENT_ID=$ID_PROSV_CLIENT_ID" >> .env.test; fi
+    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_SECRET в .env.test"; echo "ID_PROSV_CLIENT_SECRET=$ID_PROSV_CLIENT_SECRET" >> .env.test; fi
 
 build:
   stage: build
@@ -30,20 +37,12 @@ build:
   artifacts:
     paths:
       - vendor/
+      - .env
 
 test:
   stage: test
   services:
     - postgres:13
-  before_script:
-    - echo "Генерация ACCESS_SECRET (42 символа)"
-    - export ACCESS_SECRET=$(openssl rand -hex 21)
-    - echo "ACCESS_SECRET=$ACCESS_SECRET" >> .env
-    - echo "Записываем DATABASE_URL и APP_ENV в .env"
-    - echo "DATABASE_URL=$DATABASE_URL" >> .env
-    - echo "APP_ENV=$APP_ENV" >> .env
-    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_ID в .env.test"; echo "ID_PROSV_CLIENT_ID=$ID_PROSV_CLIENT_ID" >> .env.test; fi
-    - if [ "$APP_ENV" = "test" ]; then echo "Добавляем ID_PROSV_CLIENT_SECRET в .env.test"; echo "ID_PROSV_CLIENT_SECRET=$ID_PROSV_CLIENT_SECRET" >> .env.test; fi
   script:
     - echo "Проверка версии PHP"
     - php -v
