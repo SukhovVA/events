@@ -21,7 +21,7 @@ class EventResponse implements JsonSerializable
             'remote_link'    => $this->event->getRemoteLink(),
             'slug'           => $this->event->getSlug(),
             'active'         => $this->event->isActive(),
-            'cover'          => new MediaLinkResponse($this->event->getCover()),
+            'cover' => $this->event->getCover() ? new MediaLinkResponse($this->event->getCover()) : null,
             'visits'         => $this->event->getVisits()->count(),
             'properties'     => $this->event->getProperties()->map(fn($property) => new PropertyResponse($property)),
             'created_at'     => $this->event->getCreatedAt(),
