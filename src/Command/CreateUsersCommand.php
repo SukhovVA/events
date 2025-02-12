@@ -11,7 +11,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'app:create_users')]
+#[AsCommand(
+    name: 'app:create_users',
+    description: 'Creates a new user'
+)]
 class CreateUsersCommand extends Command
 {
 
