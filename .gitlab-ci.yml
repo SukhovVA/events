@@ -85,6 +85,9 @@ deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $DEPLOY_SERVER >> ~/.ssh/known_hosts
     - echo "Выполняем rsync для деплоя на сервер"
-    - rsync -avz --delete ./ deployer@$DEPLOY_SERVER:/var/www/app
+    - rsync -q -avz --delete ./ deployer@$DEPLOY_SERVER:/var/www/app
+    - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console cache:clear --env=$APP_ENV"
+    - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console cache:warmup --env=$APP_ENV"
+    - ssh deployer@$DEPLOY_SERVER "cd /var/www/app && php bin/console doctrine:migrations:migrate --no-interaction --env=$APP_ENV"
   only:
     - main
